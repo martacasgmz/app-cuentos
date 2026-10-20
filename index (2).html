@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lee y ordena el cuento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--fs:1;--bg:#EAF1FF;--ink:#17306E;--card:#FFFEF8;--blue:#1E5BC6;--sun:#FFC107;--btnink:#17306E;--ok:#2E7D32;--ko:#D32F2F;--okbg:#DDF3E0;--kobg:#FDE0DF;--selbg:#FFF1B8;--line:#7F9FD6;--slot:rgba(255,254,248,.8);--tray:rgba(23,48,110,.1);--bw:3px}
+:root[data-tema=oscuro]{--bg:#1C2433;--ink:#E8EBF2;--card:#263044;--blue:#9DB2FF;--sun:#E9B949;--btnink:#1C2433;--ok:#7AD6A6;--ko:#F59BBC;--okbg:#1F3A30;--kobg:#43263A;--selbg:#34406B;--line:#6B7A96;--slot:rgba(38,48,68,.6);--tray:rgba(232,235,242,.08)}
+:root[data-tema=contraste]{--bg:#FFFBE6;--ink:#000;--card:#FFFDF2;--blue:#0030C0;--sun:#FFD84D;--btnink:#000;--ok:#005A30;--ko:#A00030;--okbg:#E3F5EA;--kobg:#FBE3EA;--selbg:#DCE5FF;--line:#000;--slot:rgba(255,253,242,.8);--tray:rgba(0,0,0,.08);--bw:4px}
+*{box-sizing:border-box}
+html{font-size:calc(100%*var(--fs))}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.125rem/1.6 "Atkinson Hyperlegible",Verdana,"Trebuchet MS",sans-serif;min-height:100vh}
+h1,h2,h3,button,.num{font-family:"Baloo 2","Atkinson Hyperlegible",Verdana,sans-serif}
+main{max-width:760px;margin:0 auto;padding:12px 16px 48px}
+h1{font-size:2.1rem;line-height:1.15;margin:8px 0 4px}
+h2{font-size:1.7rem;margin:6px 0 12px}
+.sub{margin:0 0 20px}
+.ajustes{max-width:760px;margin:0 auto;padding:10px 16px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ajustes button,.ajustes select{font-size:1rem;padding:4px 14px}
+.ajustes select{font-family:inherit;font-weight:700;border:var(--bw) solid var(--ink);border-radius:999px;background:var(--card);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.story{background:var(--card);border:var(--bw) solid var(--ink);border-radius:20px;padding:16px;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.story .em{font-size:2.6rem;display:block}
+.story b{font-family:"Baloo 2",Verdana,sans-serif;font-size:1.3rem}
+.story small{display:block;font-size:.9rem}
+button{font-size:1.15rem;font-weight:800;border:var(--bw) solid var(--ink);border-radius:999px;padding:8px 22px;background:var(--sun);color:var(--btnink);cursor:pointer}
+button.alt{background:var(--card);color:var(--ink)}
+button:disabled{opacity:.55;cursor:not-allowed}
+button:focus-visible,select:focus-visible,.piece:focus-visible,.slot:focus-visible{outline:4px solid var(--blue);outline-offset:2px}
+.page{background:var(--card);border-radius:20px;padding:8px 20px;border:var(--bw) solid var(--ink)}
+.page p{margin:.9rem 0;font-size:1.25rem;line-height:1.8}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.slots{display:grid;gap:10px;margin:14px 0}
+.slot{display:flex;align-items:center;gap:10px;min-height:64px;border:var(--bw) dashed var(--line);border-radius:16px;padding:6px;background:var(--slot)}
+.slot.over{border-color:var(--blue);border-style:solid}
+.num{flex:none;width:2.4rem;height:2.4rem;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:1.2rem}
+.slot .piece{flex:1}
+.tray{display:grid;gap:10px;min-height:70px;padding:10px;border-radius:16px;background:var(--tray);margin-top:6px}
+.tray.over{outline:3px solid var(--blue)}
+.piece{background:var(--card);border:var(--bw) solid var(--ink);border-left:14px solid var(--pc,var(--ink));border-radius:14px;padding:8px 12px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;font-size:1.1rem;line-height:1.4}
+.piece.sel{outline:4px solid var(--blue);background:var(--selbg)}
+.piece.ghost{position:fixed;z-index:50;pointer-events:none;opacity:.95}
+.piece.ok{border-color:var(--ok);border-left-color:var(--pc);background:var(--okbg);cursor:default}
+.piece.ko{border-color:var(--ko);border-left-color:var(--pc);background:var(--kobg);cursor:default}
+.piece.ok::before{content:"✔ Bien: ";font-weight:800;color:var(--ok)}
+.piece.ko::before{content:"✘ Aquí no va: ";font-weight:800;color:var(--ko)}
+.hint{font-size:1rem;margin:0}
+.result{background:var(--card);border:var(--bw) solid var(--ink);border-radius:20px;padding:12px 18px;margin-top:16px}
+.stars{font-size:2rem;letter-spacing:4px}
+:root:not([data-tema]) .story:nth-child(1){background:#FFD6D3}
+:root:not([data-tema]) .story:nth-child(2){background:#FFEFA8}
+:root:not([data-tema]) .story:nth-child(3){background:#CFE0FF}
+:root:not([data-tema]) .story:nth-child(4){background:#CDEBD3}
+:root:not([data-tema]) h1{color:#1E5BC6}
+</style>
+</head>
+<body>
+<div class="ajustes" role="group" aria-label="Ajustes de lectura">
+<button class="alt" id="menos" aria-label="Letra más pequeña">A−</button>
+<button class="alt" id="mas" aria-label="Letra más grande">A+</button>
+<select id="tema" aria-label="Colores"><option value="suave">Colores suaves</option><option value="oscuro">Fondo oscuro</option><option value="contraste">Alto contraste</option></select>
+</div>
+<main id="app"></main>
+<script>
+const CUENTOS=[
+{id:"cerditos",em:"🐷",titulo:"Los tres cerditos",
+ texto:["Había una vez tres cerditos hermanos que vivían con su mamá en una granja. Un día, la mamá les dijo: «Ya sois mayores. Es hora de que cada uno construya su propia casa». Los cerditos se despidieron de ella con un abrazo y se fueron por el camino.", "El cerdito pequeño era muy perezoso y quería terminar pronto para ir a jugar. Hizo su casa de paja en un ratito. El cerdito mediano hizo la suya de madera, que era un poco más difícil, pero tampoco quiso esforzarse mucho.", "El cerdito mayor era el más trabajador. Fue poniendo ladrillo sobre ladrillo y tardó muchos días en terminar su casa. Sus hermanos se reían de él y le decían que perdía el tiempo, pero él no les hizo caso.", "Una tarde, un lobo hambriento pasó por allí y vio la casa de paja. Llamó a la puerta y dijo: «¡Cerdito, déjame entrar!». El cerdito contestó: «¡No, no, no! ¡Por los pelos de mi barbilla no te dejaré entrar!». Entonces el lobo gritó: «¡Soplaré y soplaré y tu casa derribaré!». Sopló con fuerza y la casa de paja salió volando. El cerdito pequeño salió corriendo hacia la casa de madera de su hermano.", "El lobo los siguió y sopló y sopló delante de la casa de madera. ¡Y también se cayó! Los dos cerditos, muy asustados, corrieron hasta la casa de ladrillos de su hermano mayor, que les abrió la puerta enseguida.", "El lobo llegó a la casa de ladrillos y sopló con todas sus fuerzas, pero la casa no se movió ni un poquito. Cansado, intentó entrar por la chimenea, pero el cerdito mayor había puesto debajo una olla de agua caliente. El lobo se llevó un buen susto y se fue corriendo para no volver nunca más. Los tres hermanos vivieron felices y aprendieron que el trabajo bien hecho da buenos resultados."],
+ pasos:["La mamá dijo a los cerditos que construyeran su propia casa.", "Los cerditos pequeño y mediano hicieron sus casas de paja y de madera muy rápido.", "El cerdito mayor tardó muchos días en hacer su casa de ladrillos.", "«¡Soplaré y soplaré y tu casa derribaré!», gritó el lobo.", "El lobo derribó la casa de paja y después la de madera.", "Los tres cerditos se refugiaron en la casa de ladrillos.", "El lobo no pudo derribarla, se asustó con el agua caliente y se fue."]},
+{id:"caperucita",em:"🧣",titulo:"Caperucita Roja",
+ texto:["Caperucita Roja era una niña muy querida por todos. Su abuelita le había regalado una capa roja con capucha y la niña la llevaba siempre puesta. Por eso todo el mundo la llamaba Caperucita Roja. Vivía con su mamá en una casita cerca del bosque.", "Una mañana, la mamá preparó una cesta con pan, mantequilla y un pastel. «Tu abuelita está enferma —le dijo—. ¿Puedes llevarle esta cesta? Ve por el camino y no hables con extraños». Caperucita prometió que tendría mucho cuidado.", "Caperucita paseaba por el bosque cantando y mirando las flores cuando apareció un lobo. «¿Adónde vas tan sola?», le preguntó con una voz muy dulce. Ella le contó que iba a casa de su abuelita, que vivía al otro lado del bosque.", "El lobo tuvo una idea malvada. Fue corriendo por un atajo hasta la casa de la abuelita y llamó a la puerta. La abuelita abrió sin sospechar nada. El lobo la encerró en el armario, se puso su camisón y su gorro y se metió en la cama.", "Cuando Caperucita llegó, le extrañó ver a su abuelita tan cambiada. «Abuelita, ¡qué ojos tan grandes tienes!», dijo. «Son para verte mejor». «¡Y qué orejas tan grandes!». «Son para oírte mejor». «¡Y qué boca tan grande!». «¡Es para comerte mejor!», gritó el lobo, saltando de la cama.", "Caperucita gritó con todas sus fuerzas. Un leñador que andaba cerca oyó los gritos y entró corriendo en la casa con su hacha. El lobo se asustó tanto que salió huyendo por la ventana y no volvió nunca. El leñador abrió el armario y liberó a la abuelita. Los tres merendaron el pastel y Caperucita aprendió que no hay que hablar con extraños."],
+ pasos:["La mamá le pidió a Caperucita que llevara una cesta a su abuelita enferma.", "Caperucita paseaba por el bosque y se encontró con el lobo.", "Caperucita le contó al lobo adónde iba.", "El lobo llegó antes a casa de la abuelita y se disfrazó.", "Caperucita notó que su abuelita tenía los ojos, las orejas y la boca muy grandes.", "«¡Es para comerte mejor!», gritó el lobo.", "El leñador llegó y el lobo salió huyendo."]},
+{id:"blancanieves",em:"🍎",titulo:"Blancanieves",
+ texto:["Hace mucho tiempo, en un gran castillo, nació una princesa con la piel blanca como la nieve, los labios rojos como una rosa y el pelo negro como el ébano. Por eso la llamaron Blancanieves. Cuando era pequeña, su mamá, la reina, murió, y su papá, el rey, volvió a casarse.", "La nueva reina era muy bella, pero también muy orgullosa. Tenía un espejo mágico y cada mañana le preguntaba: «Espejito, espejito, ¿quién es la más bella del reino?». El espejo siempre respondía: «Tú, majestad». Pero un día, cuando Blancanieves ya era mayor, el espejo contestó: «Blancanieves es más bella que tú».", "La reina se puso furiosa de celos y ordenó a un cazador que se llevara a Blancanieves al bosque. El cazador no tuvo valor para hacerle daño y le dijo que huyera lejos. Blancanieves corrió y corrió entre los árboles hasta que encontró una casita muy pequeña.", "En la casita había siete mesitas, siete sillitas y siete camitas. Allí vivían siete enanitos que trabajaban en una mina. Cuando regresaron, encontraron a Blancanieves dormida. Ella les contó su historia y los enanitos le dijeron: «Puedes quedarte con nosotros, pero no abras la puerta a nadie».", "Mientras tanto, el espejo mágico le dijo a la reina que Blancanieves seguía viva. La reina se disfrazó de anciana y fue a la casita con una cesta de manzanas. Blancanieves, sin sospechar, aceptó una manzana roja y le dio un mordisco. Era una manzana envenenada y la niña cayó en un sueño profundo.", "Los enanitos la encontraron y lloraron mucho. La colocaron en una cama de cristal en el bosque. Un día pasó por allí un príncipe, vio a Blancanieves y se enamoró de ella. Le dio un beso y la joven despertó. Se casaron en el castillo y fueron muy felices."],
+ pasos:["«Espejito, espejito, ¿quién es la más bella del reino?», preguntaba la reina.", "El espejo mágico dijo que Blancanieves era más bella que la reina.", "El cazador dejó escapar a Blancanieves al bosque.", "Blancanieves encontró la casita de los siete enanitos.", "La reina disfrazada de anciana le dio una manzana envenenada.", "Blancanieves cayó en un sueño profundo.", "El beso del príncipe despertó a Blancanieves."]},
+{id:"sirenita",em:"🧜‍♀️",titulo:"La sirenita",
+ texto:["En el fondo del mar vivía Ariel, la menor de las hijas del rey Tritón. Tenía una voz preciosa y le encantaba cantar. Pero lo que más le gustaba era coleccionar objetos que caían de los barcos de los humanos: tenedores, peines y botellas. Soñaba con conocer el mundo de la tierra.", "Una noche, Ariel subió a la superficie y vio un gran barco con música y luces. Allí estaba un joven príncipe celebrando su cumpleaños. De pronto llegó una tormenta terrible, el barco se hundió y el príncipe cayó al agua.", "Ariel nadó rápidamente, lo agarró y lo llevó hasta la orilla. Cantó para él hasta que el príncipe abrió un poco los ojos, pero ella se escondió antes de que pudiera verla bien. Desde ese día, Ariel no pudo dejar de pensar en él. Suspiraba y decía: «¡Daría cualquier cosa por ser humana!».", "Ariel quería ser humana para volver a verlo, así que fue a ver a Úrsula, la bruja del mar. La bruja le ofreció un trato: le daría piernas a cambio de su preciosa voz. Ariel aceptó y, de pronto, su cola de pez se convirtió en piernas.", "El príncipe encontró a Ariel en la playa y la llevó a su castillo. Se hicieron amigos, pero ella no podía hablar para decirle que era quien lo había salvado. Mientras tanto, la bruja se disfrazó de una joven para que el príncipe se enamorara de ella.", "Ariel luchó con valentía y, al final, recuperó su voz. El príncipe la reconoció por su canción y comprendió que ella era quien lo había salvado. La bruja fue vencida y el rey Tritón vio cuánto se querían. Ariel y el príncipe se casaron y vivieron felices."],
+ pasos:["Ariel soñaba con conocer el mundo de los humanos.", "Ariel salvó a un príncipe de un naufragio durante una tormenta.", "«¡Daría cualquier cosa por ser humana!», suspiró Ariel.", "La bruja del mar le dio piernas a cambio de su voz.", "El príncipe encontró a Ariel en la playa, pero ella no podía hablar.", "Ariel recuperó su voz y el príncipe la reconoció.", "Ariel y el príncipe se casaron."]}
+];
+const app=document.getElementById("app");
+const root=document.documentElement,FS=[1,1.2,1.4,1.6];
+let ajuste={fs:0,tema:"suave"};
+try{const g=JSON.parse(localStorage.getItem("ajustes")||"null");if(g&&FS[g.fs]&&["suave","oscuro","contraste"].includes(g.tema))ajuste=g}catch(e){}
+function aplicar(){
+  root.style.setProperty("--fs",FS[ajuste.fs]);
+  if(ajuste.tema==="suave")root.removeAttribute("data-tema");else root.setAttribute("data-tema",ajuste.tema);
+  document.getElementById("tema").value=ajuste.tema;
+  document.getElementById("menos").disabled=ajuste.fs===0;
+  document.getElementById("mas").disabled=ajuste.fs===FS.length-1;
+  try{localStorage.setItem("ajustes",JSON.stringify(ajuste))}catch(e){}
+}
+document.getElementById("menos").onclick=()=>{ajuste.fs=Math.max(0,ajuste.fs-1);aplicar()};
+document.getElementById("mas").onclick=()=>{ajuste.fs=Math.min(FS.length-1,ajuste.fs+1);aplicar()};
+document.getElementById("tema").onchange=e=>{ajuste.tema=e.target.value;aplicar()};
+aplicar();
+let C=null,place=[],sel=null,checked=false,order=[];
+
+function shuffle(n){const a=[...Array(n).keys()];do{for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}while(a.every((v,i)=>v===i));return a}
+
+function home(){
+  C=null;
+  app.innerHTML=`<h1>Lee y ordena el cuento 📚</h1><p class="sub">Elige un cuento, léelo con calma y después ordena lo que pasó.</p>
+  <div class="grid">${CUENTOS.map(c=>`<button class="story" data-id="${c.id}"><span class="em">${c.em}</span><b>${c.titulo}</b><small>Leer y ordenar</small></button>`).join("")}</div>`;
+  app.querySelectorAll(".story").forEach(b=>b.onclick=()=>leer(b.dataset.id));
+}
+
+function leer(id){
+  C=CUENTOS.find(c=>c.id===id);
+  app.innerHTML=`<h2>${C.em} ${C.titulo}</h2><div class="page">${C.texto.map(p=>`<p>${p}</p>`).join("")}</div>
+  <div class="actions"><button id="ya">Ya lo he leído</button><button class="alt" id="back">Otros cuentos</button></div>`;
+  document.getElementById("ya").onclick=jugar;
+  document.getElementById("back").onclick=home;
+  scrollTo(0,0);
+}
+
+function jugar(){
+  place=Array(C.pasos.length).fill(null);order=shuffle(C.pasos.length);sel=null;checked=false;
+  app.innerHTML=`<h2>${C.em} Ordena lo que pasó</h2>
+  <p class="hint">Arrastra cada frase a su casilla. En el móvil también puedes tocar una frase y luego tocar la casilla.</p>
+  <div class="slots" id="slots"></div>
+  <p class="hint">Frases para ordenar:</p><div class="tray" id="tray"></div>
+  <div class="actions"><button id="check" disabled>Comprobar</button><button class="alt" id="reread">Volver a leer</button></div>
+  <div id="res"></div>`;
+  document.getElementById("check").onclick=comprobar;
+  document.getElementById("reread").onclick=()=>leer(C.id);
+  pintar();
+}
+
+const PC=["#E53935","#F57C00","#FFC107","#2E9E4F","#1E5BC6","#7B3FA0"];
+function pieza(i,cls=""){return `<div class="piece ${cls}${sel===i?" sel":""}" style="--pc:${PC[order.indexOf(i)%PC.length]}" data-p="${i}" tabindex="0" role="button">${C.pasos[i]}</div>`}
+
+function pintar(){
+  const s=document.getElementById("slots"),t=document.getElementById("tray");
+  s.innerHTML=place.map((p,n)=>{
+    let cls="";if(checked&&p!==null)cls=p===n?"ok":"ko";
+    return `<div class="slot" data-s="${n}" tabindex="0" aria-label="Casilla ${n+1}"><span class="num">${n+1}</span>${p!==null?pieza(p,cls):""}</div>`}).join("");
+  t.innerHTML=order.filter(i=>!place.includes(i)).map(i=>pieza(i)).join("");
+  document.getElementById("check").disabled=checked||place.includes(null);
+  if(!checked){
+    document.querySelectorAll(".piece").forEach(el=>el.addEventListener("pointerdown",down));
+    document.querySelectorAll(".slot").forEach(el=>el.onclick=()=>{if(sel!==null){soltar(sel,el)}});
+    document.getElementById("tray").onclick=e=>{if(sel!==null&&e.target.id==="tray")soltar(sel,e.target)};
+    document.querySelectorAll(".piece").forEach(el=>el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();sel=sel===+el.dataset.p?null:+el.dataset.p;pintar()}});
+    document.querySelectorAll(".slot").forEach(el=>el.onkeydown=e=>{if((e.key==="Enter"||e.key===" ")&&e.target===el&&sel!==null){e.preventDefault();soltar(sel,el)}});
+  }
+}
+
+function soltar(i,destino){
+  const from=place.indexOf(i);
+  const slot=destino.closest&&destino.closest(".slot");
+  if(slot){
+    const n=+slot.dataset.s,prev=place[n];
+    if(from>=0)place[from]=prev; // intercambio entre casillas
+    place[n]=i;
+  }else if(destino.closest&&destino.closest("#tray")){
+    if(from>=0)place[from]=null;
+  }
+  sel=null;pintar();
+}
+
+let drag=null;
+function down(e){
+  if(checked)return;
+  const el=e.currentTarget,i=+el.dataset.p;
+  drag={i,el,x:e.clientX,y:e.clientY,moved:false,ghost:null};
+  addEventListener("pointermove",move);addEventListener("pointerup",up,{once:true});addEventListener("pointercancel",cancel,{once:true});
+}
+function move(e){
+  if(!drag)return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7){
+    drag.moved=true;
+    const r=drag.el.getBoundingClientRect(),g=drag.el.cloneNode(true);
+    g.classList.add("ghost");g.style.width=r.width+"px";drag.dx=e.clientX-r.left;drag.dy=e.clientY-r.top;
+    document.body.appendChild(g);drag.ghost=g;drag.el.style.opacity=".35";
+  }
+  if(drag.moved){
+    drag.ghost.style.left=(e.clientX-drag.dx)+"px";drag.ghost.style.top=(e.clientY-drag.dy)+"px";
+    document.querySelectorAll(".over").forEach(x=>x.classList.remove("over"));
+    const t=document.elementFromPoint(e.clientX,e.clientY),d=t&&(t.closest(".slot")||t.closest("#tray"));
+    if(d)d.classList.add("over");
+  }
+}
+function up(e){
+  removeEventListener("pointermove",move);
+  if(!drag)return;
+  const d=drag;drag=null;
+  document.querySelectorAll(".over").forEach(x=>x.classList.remove("over"));
+  if(d.ghost)d.ghost.remove();
+  if(!d.moved){sel=sel===d.i?null:d.i;pintar();return}
+  const t=document.elementFromPoint(e.clientX,e.clientY),dest=t&&(t.closest(".slot")||t.closest("#tray"));
+  if(dest)soltar(d.i,dest);else pintar();
+}
+function cancel(){removeEventListener("pointermove",move);if(drag&&drag.ghost)drag.ghost.remove();drag=null;pintar()}
+
+function comprobar(){
+  checked=true;sel=null;pintar();
+  const ok=place.filter((p,n)=>p===n).length,total=place.length;
+  const est=ok===total?3:ok>=Math.ceil(total/2)?2:1;
+  const msg=ok===total?"¡Perfecto! Has ordenado todo el cuento.":ok>=Math.ceil(total/2)?"¡Muy bien! Casi lo tienes. Lee otra vez y prueba de nuevo.":"Buen intento. Vuelve a leer el cuento y ordénalo otra vez.";
+  document.getElementById("res").innerHTML=`<div class="result"><div class="stars" aria-label="${est} de 3 estrellas">${"★".repeat(est)}${"☆".repeat(3-est)}</div>
+  <p><b>${ok} de ${total} en su sitio.</b> ${msg}</p>
+  <div class="actions"><button id="again">Intentar otra vez</button><button class="alt" id="rr">Volver a leer</button><button class="alt" id="hm">Otros cuentos</button></div></div>`;
+  document.getElementById("again").onclick=jugar;
+  document.getElementById("rr").onclick=()=>leer(C.id);
+  document.getElementById("hm").onclick=home;
+  document.getElementById("res").scrollIntoView({block:"nearest"});
+}
+home();
+</script>
+</body>
+</html>
